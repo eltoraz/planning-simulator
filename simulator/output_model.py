@@ -17,15 +17,7 @@ def _create_span(start_time: Optional[str], end_time: Optional[str]) -> dict[str
         return {}
 
 
-class Serializable:
-    """Interface for serializable payloads."""
-
-    def to_serializable(self) -> dict[str, Any]:
-        """Return serializable dict of this payload"""
-        return {}
-
-
-class Payload(Serializable):
+class Payload:
     """Base class for payloads."""
     start_time: Optional[str] = None
     """Plan element start time"""
@@ -45,9 +37,10 @@ class Payload(Serializable):
 
         self.data.update(data)
 
-        self.relationships: dict[str, list[Serializable]] = {}
+        self.relationships: dict[str, list[Payload]] = dict()
 
     def to_serializable(self) -> dict[str, Any]:
+        """Return serializable dict of this payload"""
         metadata = {key: value for key, value in self.metadata.items()}
         data = {key: value for key, value in self.data.items()}
 
@@ -116,7 +109,7 @@ class Payload(Serializable):
             self.relationships[relationship].append(relative)
 
     def get_related(self,
-                    relationship: str) -> list[Serializable]:
+                    relationship: str) -> list[Payload]:
         """Get related vertices"""
         if relationship in self.relationships:
             return self.relationships[relationship]
