@@ -7,8 +7,9 @@ class PlanSettings:
     """Configuration for plan generation."""
 
     def __init__(self,
-                 operation_name: str,
-                 operation_id: int,
+                 output_file: str = "output/plan_{}.json",
+                 operation_name: str = "Simulation Plan",
+                 operation_id: int = 1,
                  auto_number_id: bool = False,
                  operation_description: Optional[str] = None,
                  start_datetime: Optional[str] = None,
@@ -16,6 +17,8 @@ class PlanSettings:
                  scoot_heading: float = 0.0,
                  environment_factors: dict[str, str] = {},
                  time_series_environment_factors: dict[str, dict[str, str]] = {}):
+        self.output_file = output_file
+        """Filename to write plan JSON to (includes one parameter interpolated with start datetime)"""
         self.operation_name = operation_name
         """Name of operation"""
         self.operation_id = operation_id

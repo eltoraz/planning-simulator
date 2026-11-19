@@ -361,6 +361,7 @@ class Simulator:
             json.dump(operation.to_serializable(project), json_file, indent=4)
 
     def run_simulation():
+        """Step through the simulated actions and build the plan hierarchy"""
         missions = [create_mission_for_unit(unit_state) for unit_state in entity_states.values() if unit_state.unit.mission]
         mission_end_times = [mission.get_end_time() for mission in missions]
         end_time: Optional[datetime] = max(mission_end_times) if mission_end_times else None
