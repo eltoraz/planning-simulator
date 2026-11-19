@@ -147,15 +147,15 @@ class SupplyRequirement(Payload):
     def __init__(self,
                  task_name: str,
                  model: str,
-                 nomenclature: str,
+                 description: str,
                  quantity: Optional[int],
                  context: dict[str, Any],
                  focus_id: Optional[int] = None):
-        name = f"Supply Requirement for Task: {task_name.format(context)} : {model} : {nomenclature}"
+        name = f"Supply Requirement for Task: {task_name.format(context)} : {model} : {description}"
         data: dict[str, Any] = {
             "name": name,
             "model": model,
-            "description": nomenclature
+            "description": description
         }
 
         super().__init__(False,
