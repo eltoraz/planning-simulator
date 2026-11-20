@@ -6,8 +6,8 @@ from datetime import datetime
 from haversine import inverse_haversine
 from typing import Optional, Self
 
-from plan_model import MissionDef
-from spacetime_model import Location, _future_time
+from simulator.plan_model import MissionDef
+from simulator.spacetime_model import Location, _future_time
 
 
 @dataclass

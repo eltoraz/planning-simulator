@@ -109,7 +109,7 @@ class Payload:
             self.relationships[relationship].append(relative)
 
     def get_related(self,
-                    relationship: str) -> list[Payload]:
+                    relationship: str) -> list["Payload"]:
         """Get related vertices"""
         if relationship in self.relationships:
             return self.relationships[relationship]

@@ -6,13 +6,11 @@ from datetime import datetime
 from haversine import inverse_haversine
 from typing import Any, Optional
 
-from config import PlanSettings
-from entity_model import Entity, EntityState
-from output_model import EquipmentRequirement, Operation, Mission, Payload, Plan, PlanningFactor, SupplyRequirement, Task
-from plan_model import MovePlan, PlanDef, ScootPlan, TaskDef
-from spacetime_model import Location, _future_time
-
-# TODO get config overrides from command-line args
+from simulator.config import PlanSettings
+from simulator.entity_model import Entity, EntityState
+from simulator.output_model import EquipmentRequirement, Operation, Mission, Payload, Plan, PlanningFactor, SupplyRequirement, Task
+from simulator.plan_model import MovePlan, PlanDef, ScootPlan, TaskDef
+from simulator.spacetime_model import Location, _future_time
 
 def short_datetime(dt: datetime) -> str:
     """Return a string of a datetime's hour and minute fields concatenated together"""

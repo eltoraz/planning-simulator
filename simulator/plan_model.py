@@ -4,7 +4,7 @@ Plan structure model for internal simulation use
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from spacetime_model import Location
+from simulator.spacetime_model import Location
 
 
 @dataclass
