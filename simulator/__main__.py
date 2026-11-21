@@ -3,6 +3,7 @@ import json
 from typing import Any
 
 from simulator.config import PlanSettings
+from simulator.entity_model import Entity
 from simulator.simulator_model import Simulator
 
 def _simulator_args() -> argparse.Namespace:
@@ -58,3 +59,28 @@ def _read_json(input_filename: str) -> Any:
     return json_contents
 
 args = _simulator_args()
+
+environment_factors_file = args.environment_factors_file
+environment_factors = dict()
+time_series_environment_factors = dict()
+if environment_factors_file:
+    if args.time_series_environment_factors:
+        time_series_environment_factors = _read_json(environment_factors_file)
+    else:
+        environment_factors = _read_json(environment_factors_file)
+
+entity_hierarchy = Entity.from_json(_read_json(args.input_file))
+
+settings = PlanSettings(args.output_file,
+        args.operation_name,
+        args.operation_id,
+        args.auto_number_id,
+        args.operation_description,
+        args.start_datetime,
+        args.scoot_distance,
+        args.scoot_heading,
+        environment_factors,
+        time_series_environment_factors)
+# TODO handle equipment loading
+simulator = Simulator(settings, entity_hierarchy, None)
+simulator.run_simulation()
