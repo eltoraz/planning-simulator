@@ -18,6 +18,14 @@ class SupplyReqDef:
     quantity: Optional[int] = None
     """Quantity required (optional)"""
 
+    @classmethod
+    def from_json(cls,
+                  json: Any) -> "SupplyReqDef":
+        name = json['name'] if 'name' in json else 'Anonymous Supply Requirement'
+        description = json['description'] if 'description' in json else 'Anonymous Supply Requirement'
+        quantity = json['quantity'] if 'quantity' in json else None
+        return cls(name, description, quantity)
+
 
 @dataclass
 class TaskDef:
@@ -107,6 +115,7 @@ class MoveTask(TaskDef):
         )
 
 
+# TODO subordinate_tasks is no longer hooked up to main mechanisms of PlanDef construction
 class PlanDef:
     """Common parameters for missions and plans of a particular type."""
 
@@ -164,11 +173,11 @@ class PlanDef:
 
     # TODO (old) need to make sure tasks are sorted chronologically
     def locations(self,
-                  unit_id: Optional[int] = None) -> list[Location]:
+                  entity_id: Optional[int] = None) -> list[Location]:
         """Get a sequential list of all the locations visited over the represented Plan"""
         locs = [task.destination for task in self.tasks if task.destination]
-        if unit_id and unit_id in self.subordinate_tasks:
-            locs.extend(task.destination for task in self.subordinate_tasks[unit_id] if task.destination)
+        if entity_id and entity_id in self.subordinate_tasks:
+            locs.extend(task.destination for task in self.subordinate_tasks[entity_id] if task.destination)
             pass
         return locs
 
@@ -238,6 +247,16 @@ class MissionDef:
         """
         new_actions = self.actions + actions if append_actions else actions
         return MissionDef(self.mission_name, self.mission_type, new_actions)
+
+    @classmethod
+    def from_json(cls,
+                  json: Any) -> "MissionDef":
+        """Create a MissionDef object from a generic object parsed from JSON."""
+        name = json['mission_name'] if 'mission_name' in json else 'Anonymous Mission'
+        mission_type = json['mission_type'] if 'mission_type' in json else None
+        actions = [PresetPlanFactory.plan_from_json(action) for action in json['actions']] if 'actions' in json else []
+        propagate = bool(json['propagate']) if 'propagate' in json else True
+        return cls(name, mission_type, actions, propagate)
 
 
 class MovePlan(PlanDef):
@@ -337,3 +356,60 @@ class PresetPlanFactory:
                   duration: int,
                   offset: Optional[int] = None) -> MoveTask:
         return MoveTask(destination, duration, offset)
+
+    @classmethod
+    def task_from_json(cls,
+                       json: Any) -> TaskDef:
+        destination = Location.from_json(json['destination'])
+        duration = json['duration'] if 'duration' in json else 0
+        offset = json['offset'] if 'offset' in json else None
+
+        task_type = json['task_type'] if 'task_type' in json else 'OTHER'
+        if task_type == 'MOVE' and 'destination' in json:
+            return cls.move_task(destination, duration, offset)
+        else:
+            task_name = json['task_name'] if 'task_name' in json else 'Anonymous Task'
+            planning_factors = bool(json['use_planning_factors']) if 'use_planning_factors' in json else False
+            equipment_requirements = json['equipment_requirements'] if 'equipment_requirements' in json else []
+            has_equipment_requirements = len(equipment_requirements) > 0
+            supply_requirements = [SupplyReqDef.from_json(supply_req) for supply_req in json['supply_requirements']] if 'supply_requirements' in json else []
+            has_supply_requirements = len(supply_requirements) > 0
+            exclusions = json['exclusion_ids'] if 'exclusion_ids' in json else []
+            return TaskDef(task_name,
+                    task_type,
+                    duration,
+                    offset,
+                    planning_factors,
+                    has_equipment_requirements,
+                    equipment_requirements,
+                    has_supply_requirements,
+                    supply_requirements,
+                    destination,
+                    exclusions)
+
+    @classmethod
+    def plan_from_json(cls,
+                       json: Any) -> PlanDef:
+        """Create a PlanDef of the appropriate type from a generic object parsed from JSON."""
+        parameters = dict()
+        if 'parameters' in json:
+            for key, value in json['parameters'].items():
+                if key == 'tasks' and isinstance(value, list):
+                    parameters[key] = [cls.task_from_json(task) for task in value]
+                elif key == 'subordinate_tasks' and isinstance(value, dict):
+                    parameters[key] = {subordinate_id: [cls.task_from_json(task) for task in subordinate_tasks] for subordinate_id, subordinate_tasks in value.items()}
+                else:
+                    parameters[key] = value
+
+        plan_type = json['plan_type'] if 'plan_type' in json else 'OTHER'
+        if plan_type is 'SCOOT':
+            return cls.scoot_plan(parameters)
+        elif plan_type is 'MOVE':
+            include_recon = bool(json['include_recon']) if 'include_recon' in json else False
+            return cls.move_plan(include_recon, parameters)
+        else:
+            plan_name = json['plan_name'] if 'plan_name' in json else 'Anonymous Plan'
+            delay = json['delay'] if 'delay' in json else 0
+            platform_level_plan = bool(json['platform_level_plan']) if 'platform_level_plan' in json else False
+            plan = PlanDef(plan_name, plan_type, delay, platform_level_plan)
+            return cls._customize(plan, parameters)

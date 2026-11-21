@@ -4,7 +4,7 @@ Entity structure and state tracking for plans
 from dataclasses import dataclass, field
 from datetime import datetime
 from haversine import inverse_haversine
-from typing import Optional, Self
+from typing import Any, Optional, Self
 
 from simulator.plan_model import MissionDef
 from simulator.spacetime_model import Location, _future_time
@@ -16,7 +16,7 @@ class Entity:
 
     entity_name: str
     """Name of unit"""
-    entity_id: int
+    entity_id: Optional[int]
     """ID of unit"""
     mission: Optional[MissionDef] = None
     """
@@ -32,6 +32,20 @@ class Entity:
     """Names of platforms (equipment) under this unit"""
     subordinates: list[Self] = field(default_factory=list)
     """Units under this one in the force structure"""
+
+    @classmethod
+    def from_json(cls,
+                  json: Any) -> "Entity":
+        """Create an Entity object from a generic object parsed from JSON."""
+        name = json['entity_name'] if 'entity_name' in json else 'Anonymous Entity'
+        entity_id = json['entity_id'] if 'entity_id' in json else None
+        mission = MissionDef.from_json(json['mission']) if 'mission' in json else None
+        start_location = Location.from_json(json['start_location']) if 'start_location' in json else None
+        platforms = json['platforms'] if 'platforms' in json else dict()
+        subordinates = [Entity.from_json(child) for child in json['subordinates']] if 'subordinates' in json else []
+        entity = cls(name, entity_id, mission, start_location, platforms, subordinates)
+
+        return entity
 
 
 class EntityState:

@@ -2,7 +2,7 @@
 Common data structures and config
 """
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Any, Optional
 
 _default_environment_factors: dict[str, str] = {
     "terrain": "DEFAULT",
@@ -40,8 +40,7 @@ class Location:
         """Get the location's latitude/longitude as a tuple"""
         return self.lat, self.lon
 
-    # TODO rename to str_tuple
-    def srf_format(self) -> str:
+    def str_tuple(self) -> str:
         """Format the location's coordintes in a "(lat,lon,alt)" string"""
         return _format_position(self.lat, self.lon, self.alt)
 
@@ -56,3 +55,13 @@ class Location:
         new_lon = lon if lon else self.lon
         new_alt = alt if alt else self.alt
         return Location(new_name, _format_position(new_lat, new_lon, new_alt))
+
+    @classmethod
+    def from_json(cls,
+                  json: Any) -> "Location":
+        """Create a Location object from a generic object parsed from JSON."""
+        name = json['name'] if 'name' in json else 'Anonymous Location'
+        coordinates = json['coordinates'] if 'coordinates' in json else '(0.0,0.0,0.0)'
+        description = json['description'] if 'description' in json else ''
+        return cls(name, coordinates, description)
+

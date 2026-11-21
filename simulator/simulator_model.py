@@ -93,10 +93,10 @@ class Simulator:
             context["end_time"] = format_datetime(end_time)
         if start_location:
             context["start_location"] = start_location.name
-            context["start_coordinates"] = start_location.srf_format()
+            context["start_coordinates"] = start_location.str_tuple()
         if end_location:
             context["destination"] = end_location.name
-            context["destination_coordinates"] = end_location.srf_format()
+            context["destination_coordinates"] = end_location.str_tuple()
         if entity_id is not None:
             context["entity_id"] = entity_id
         for key, value in kwargs.items():

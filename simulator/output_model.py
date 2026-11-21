@@ -201,7 +201,6 @@ class Task(Payload):
                  context: dict[str, Any],
                  focus_id: Optional[int] = None):
         name = "Task: " + task_name.format(context)
-        # TODO use actual URN when available
         if "entity_id" in context:
             description = "{0[entity_id]} :: " + task_name
         else:
